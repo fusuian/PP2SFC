@@ -5,6 +5,15 @@
 
 PrecisionPro * pp;
 
+// SPI割り込み
+ISR (SPI_STC_vect)
+{
+//  PORTD |= _BV(PIN_MONITOR);
+  pp->add_buf(SPDR);
+//  PORTD &= ~_BV(PIN_MONITOR);
+}
+
+
 void setup (void)
 {
   Serial.begin (115200);   // debugging

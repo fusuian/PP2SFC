@@ -55,14 +55,6 @@ volatile sw_data_t sw_data;
 volatile byte pos;
 
 
-// SPI割り込み
-ISR (SPI_STC_vect)
-{
-//  PORTD |= _BV(PIN_MONITOR);
-  sw_data.buf[pos++] = SPDR;
-//  PORTD &= ~_BV(PIN_MONITOR);
-}
-
 
 class PrecisionPro
 {
