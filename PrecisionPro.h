@@ -1,5 +1,5 @@
 #ifndef _PRECISIONPRO_
-#define def _PRECISIONPRO_
+#define _PRECISIONPRO_
 
 #include <SPI.h>
 
