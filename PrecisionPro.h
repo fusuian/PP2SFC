@@ -3,11 +3,14 @@
 
 #include <SPI.h>
 
-// SCK  D13 // Game port 2 // pull up
-//#define PIN_TRIGGER 3 // Game port 3
+// SPI pins
+// SCK  D13 // -> Game port 2 // pull up
 // MISO D12 // NC
-// MOSI D11 // Game port 7 // pull up
-// SS   D10 // PIN_CLEAR
+// MOSI D11 // -> Game port 7 // pull up
+// SS   D10 // <- PIN_CLEAR
+
+// Trigger pin
+// PIN_TRIGGER 3 // D2-7 // -> Game port 3
 
 
 // data structure as sent from my sidewinder device, 48 bits total
@@ -67,7 +70,7 @@ class PrecisionPro
 
   public:
 
-  // pin_trigger and pin_clear must be 0-7(as D0-D7)
+  // pin_trigger and pin_clear must be 2-7(as D2-D7)
   PrecisionPro(int mosi, int sck, int ss, int pin_trigger, int pin_clear)
   {
     MOSI = mosi;
