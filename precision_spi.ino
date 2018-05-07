@@ -27,6 +27,7 @@ void loop (void)
   pp->update();
   delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
 
+  volatile sw_data_t & sw_data = pp->data();
   for (int i=0; i < 6; i++){  
       Serial.print(sw_data.buf[i], HEX);
       Serial.print(":");

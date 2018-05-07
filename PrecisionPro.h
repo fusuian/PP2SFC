@@ -51,8 +51,6 @@ typedef union
 } sw_data_t;
 
 
-volatile sw_data_t sw_data;
-volatile byte pos;
 
 
 
@@ -65,8 +63,12 @@ class PrecisionPro
     int PIN_TRIGGER;
     int PIN_CLEAR;
 
+    volatile sw_data_t sw_data;
+    volatile byte pos;
+
   public:
-  
+
+  // pin_trigger and pin_clear must be 0-7(as D0-D7)
   PrecisionPro(int mosi, int sck, int ss, int pin_trigger, int pin_clear)
   {
     MOSI = mosi;
@@ -104,8 +106,56 @@ class PrecisionPro
     
     pos = 0;
     PORTD |= _BV(PIN_TRIGGER);
+
+    // 呼び出し側で1000us待ったあと、結果がPrecisionPro::dataに反映する
   }
 
+
+  void add_buf(uint8_t spdr) {
+    sw_data.buf[pos++] = spdr;
+  }
+  
+  volatile sw_data_t & data() {
+    return sw_data;
+  }
+
+  int fire() {
+    return sw_data.btn_fire;
+  }
+
+  int top() {
+    return sw_data.btn_top;
+  }
+
+  int top_up() {
+    return sw_data.btn_top_up;
+  }
+
+  int top_down() {
+    return sw_data.btn_top_down;
+  }
+
+  int shift() {
+    return sw_data.btn_shift;
+  }
+
+  int x() {
+    return sw_data.x - 512;
+  }
+
+  int y() {
+    return sw_data.y - 512;
+  }
+
+  int m() {
+    return sw_data.m;
+  }
+
+  int r() {
+    return sw_data.r - 32;
+  }
+
+  
 };
 
 #endif
