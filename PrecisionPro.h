@@ -9,7 +9,6 @@
 // MOSI D11 // Game port 7 // pull up
 // SS   D10 // PIN_CLEAR
 
-//#define PIN_MONITOR  5 
 
 // data structure as sent from my sidewinder device, 48 bits total
 // this datatype is accessable via two ways: an integer-array and a struct
@@ -78,7 +77,6 @@ class PrecisionPro
     PIN_TRIGGER = pin_trigger;
     
     pinMode(PIN_TRIGGER, OUTPUT);
-    //pinMode(PIN_MONITOR, OUTPUT);
     pinMode(PIN_CLEAR,   OUTPUT);
     digitalWrite(PIN_CLEAR, LOW);
     
