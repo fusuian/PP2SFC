@@ -120,24 +120,24 @@ class PrecisionPro
     return sw_data;
   }
 
-  int fire() {
-    return sw_data.btn_fire;
+  bool fire() {
+    return sw_data.btn_fire == 0;
   }
 
-  int top() {
-    return sw_data.btn_top;
+  bool top() {
+    return sw_data.btn_top == 0;
   }
 
-  int top_up() {
-    return sw_data.btn_top_up;
+  bool top_up() {
+    return sw_data.btn_top_up == 0;
   }
 
-  int top_down() {
-    return sw_data.btn_top_down;
+  bool top_down() {
+    return sw_data.btn_top_down == 0;
   }
 
-  int shift() {
-    return sw_data.btn_shift;
+  bool shift() {
+    return sw_data.btn_shift == 0;
   }
 
   int x() {
