@@ -140,6 +140,22 @@ class PrecisionPro
     return sw_data.btn_shift == 0;
   }
 
+  bool a() {
+    return sw_data.btn_a == 0;
+  }
+
+  bool b() {
+    return sw_data.btn_b == 0;
+  }
+
+  bool c() {
+    return sw_data.btn_c == 0;
+  }
+
+  bool d() {
+    return sw_data.btn_d == 0;
+  }
+
   int x() {
     return sw_data.x - 512;
   }
