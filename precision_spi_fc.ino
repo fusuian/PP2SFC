@@ -1,7 +1,7 @@
 #include "PrecisionPro.h"
 
-#define PIN_TRIGGER 3 // Game port 3
-#define PIN_CLEAR   6 
+#define PIN_TRIGGER 2
+#define PIN_CLEAR   7
 
 PrecisionPro * pp;
 
