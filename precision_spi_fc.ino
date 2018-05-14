@@ -61,6 +61,8 @@ void setup (void)
 }
 
 int p_down, p_up;
+int rapid_counter = 1;
+const int rapid_interval = 6;
 
 void loop (void)
 {
@@ -105,26 +107,35 @@ void loop (void)
 
   if (pp->fire()) {
     //Serial.println("B");
+    if (--rapid_counter == 0) {
+      portCOff(b_pin);
+      rapid_counter = rapid_interval;
+    } else {
+      portCOn(b_pin);
+    }
+  } else if (pp->b()) {
     portCOff(b_pin);
+    rapid_counter = 1;
   } else {
     portCOn(b_pin);
+    rapid_counter = 1;
   }
-
-  if (pp->top()) {
+  
+  if (pp->top() || pp->a()) {
     //Serial.println("A");
     portCOff(a_pin);
   } else {
     portCOn(a_pin);
   }
   
-  if (pp->top_up()) {
+  if (pp->top_up() || pp->c()) {
     //Serial.println("SELECT");
     portCOff(select_pin);
   } else {
     portCOn(select_pin);
   }
   
-  if (pp->top_down()) {
+  if (pp->top_down() || pp->d()) {
     //Serial.println("START");
     portCOff(start_pin);
   } else {
