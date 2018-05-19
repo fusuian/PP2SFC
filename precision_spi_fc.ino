@@ -21,11 +21,11 @@ ISR (SPI_STC_vect)
 }
 
 
-const int threshold = 200;
+const int threshold = 32;
 const int up_pin = 6;
 const int down_pin = 5;
 const int right_pin = 3;
-const int left_pin = 4;
+const int left_pin = 9;
 
 const int a_pin = 0; // A0
 const int b_pin = 1; // A1
@@ -81,28 +81,36 @@ void loop (void)
 //    p_up = up_pin;
 //    p_down = down_pin;    
 //  }
-  
+
+//  Serial.print(x);
+//  Serial.print(", ");
+//  Serial.println(y);
+
+  x/=2;
+  y/=2;
   if (y > threshold) {
-    portDOff(p_down);
+    //Serial.println(255-y);
+    analogWrite(p_down, 255-y);
   } else {
-    portDOn(p_down);
+    analogWrite(p_down, 255);
   }
   
   if (y < -threshold) {
-    portDOff(p_up);
+//    Serial.println(256+y);
+    analogWrite(p_up, 256+y);
   } else {
-    portDOn(p_up);
+    analogWrite(p_up, 255);
   }
 
   if (x > threshold) {
-    portDOff(right_pin);
+    analogWrite(right_pin, 255-x);
   } else {
-    portDOn(right_pin);
+    analogWrite(right_pin, 255);
   }
   if (x < -threshold) {
-    portDOff(left_pin);
+    analogWrite(left_pin, 256+x);
   } else {
-    portDOn(left_pin);
+    analogWrite(left_pin, 255);
   }
 
   if (pp->fire()) {
