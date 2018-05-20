@@ -61,21 +61,18 @@ void setup (void)
   pinMode(left_pin, OUTPUT);
   pinMode(right_pin, OUTPUT);
 
-  pinMode(A0, OUTPUT);
-  pinMode(A1, OUTPUT);
-  pinMode(A2, OUTPUT);
-  pinMode(A3, OUTPUT);
+  for (int i = A0; i <= A5; i++) { 
+    pinMode(i, OUTPUT);
+  }
 
   portDOn(up_pin);
   portDOn(down_pin);
   portDOn(left_pin);
   portDOn(right_pin);
 
-  portCOn(a_pin);
-  portCOn(b_pin);
-  portCOn(select_pin);
-  portCOn(start_pin);
-
+  for (int i = 0; i < 6; i++) {
+    portCOn(i);
+  }
 
   pp = new PrecisionPro(MOSI, SCK, SS, PIN_TRIGGER, PIN_CLEAR);
 }
