@@ -32,6 +32,26 @@ const int b_pin = 1; // A1
 const int select_pin = 2; // A2
 const int start_pin = 3; // A3
 
+const int sfc_a_pin = 4; // A4 
+const int sfc_b_pin = a_pin; // A5 
+const int sfc_x_pin = 5; // A4 
+const int sfc_y_pin = b_pin; // A5 
+const int sfc_l_pin = 6; // A6 
+const int sfc_r_pin = 7; // A7
+
+#if 0
+const int fire_pin = b_pin;
+const int top_pin = a_pin;
+const int top_up_pin = select_pin;
+const int top_down_pin = start_pin;
+#else
+const int fire_pin = sfc_y_pin;
+const int top_pin = sfc_a_pin;
+const int top_up_pin = sfc_x_pin;
+const int top_down_pin = sfc_b_pin;
+#endif
+
+
 void setup (void)
 {
   Serial.begin (115200);   // debugging
@@ -169,38 +189,38 @@ void loop (void)
   if (pp->fire()) {
     //Serial.println("B");
     if (--rapid_counter == 0) {
-      portCOff(b_pin);
+      portCOff(fire_pin);
       rapid_counter = rapid_interval;
     } else {
-      portCOn(b_pin);
+      portCOn(fire_pin);
     }
   } else if (pp->b()) {
-    portCOff(b_pin);
+    portCOff(fire_pin);
     rapid_counter = 1;
   } else {
-    portCOn(b_pin);
+    portCOn(fire_pin);
     rapid_counter = 1;
   }
   
   if (pp->top() || pp->a()) {
     //Serial.println("A");
-    portCOff(a_pin);
+    portCOff(top_pin);
   } else {
-    portCOn(a_pin);
+    portCOn(top_pin);
   }
   
   if (pp->top_up() || pp->c()) {
-    //Serial.println("SELECT");
-    portCOff(select_pin);
+    portCOff(top_up_pin);
   } else {
-    portCOn(select_pin);
+    portCOn(top_up_pin);
   }
-  
+   
   if (pp->top_down() || pp->d()) {
-    //Serial.println("START");
-    portCOff(start_pin);
+    portCOff(top_down_pin);
   } else {
-    portCOn(start_pin);
+    portCOn(top_down_pin);
+  }
+
   if (double_counter >= 0) {
     double_counter--;
   }
