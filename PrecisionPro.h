@@ -156,6 +156,12 @@ class PrecisionPro
     return sw_data.btn_d == 0;
   }
 
+
+  int head() {
+    return sw_data.head;
+  }
+
+
   int x() {
     return sw_data.x - 512;
   }
@@ -171,6 +177,8 @@ class PrecisionPro
   int r() {
     return sw_data.r - 32;
   }
+
+
 
   
 };

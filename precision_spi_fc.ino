@@ -85,7 +85,14 @@ void loop (void)
 //  Serial.print(x);
 //  Serial.print(", ");
 //  Serial.println(y);
-
+//  Serial.print(cnt++);
+//  Serial.print("; m: ");
+//  Serial.print(pp->m());
+//  Serial.print("; r:");
+//  Serial.print(pp->r());
+//  Serial.print("; head:");
+//  Serial.println(pp->head());
+  
   x/=2;
   y/=2;
   if (y > threshold) {
@@ -100,6 +107,7 @@ void loop (void)
     analogWrite(p_up, 256+y);
   } else {
     analogWrite(p_up, 255);
+    y = 0;
   }
 
   if (x > threshold) {
@@ -111,7 +119,47 @@ void loop (void)
     analogWrite(left_pin, 256+x);
   } else {
     analogWrite(left_pin, 255);
+    x = 0;
   }
+
+  if (x == 0 && y == 0) {
+    switch (pp->head()) {
+    case 0:
+        break;
+    case 1:
+        analogWrite(up_pin, 0);
+        break;
+    case 2:
+        analogWrite(up_pin, 0);
+        analogWrite(right_pin, 0);
+        break;
+    case 3:
+        analogWrite(right_pin, 0);
+        break;
+    case 4:
+        analogWrite(down_pin, 0);
+        analogWrite(right_pin, 0);
+        break;
+    case 5:
+        analogWrite(down_pin, 0);
+        break;
+    case 6:
+        analogWrite(down_pin, 0);
+        analogWrite(left_pin, 0);
+        break;
+    case 7:
+        analogWrite(left_pin, 0);
+        break;
+    case 8:
+        analogWrite(up_pin, 0);
+        analogWrite(left_pin, 0);
+        break;
+
+    default:
+        break;
+    }
+  }
+
 
   if (pp->fire()) {
     //Serial.println("B");
