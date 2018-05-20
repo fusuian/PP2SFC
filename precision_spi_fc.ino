@@ -64,6 +64,11 @@ int p_down, p_up;
 int rapid_counter = 1;
 const int rapid_interval = 6;
 
+int double_counter = -1;
+const int double_interval = 15;
+
+int cnt=0;
+
 void loop (void)
 {
   pp->update();
@@ -196,6 +201,27 @@ void loop (void)
     portCOff(start_pin);
   } else {
     portCOn(start_pin);
+  if (double_counter >= 0) {
+    double_counter--;
+  }
+  // shiftキー一瞬押しでSTART, 長押しでSELECT
+  if (pp->shift()) {
+    if (double_counter < 0) {
+      double_counter = double_interval;
+    } else if (double_counter == 0) {
+      Serial.println("SELECT");
+      portCOff(select_pin);
+    }
+  } else {
+    if (double_counter > 0) {
+      Serial.println("START");
+      portCOff(start_pin);
+      double_counter = -1;
+    } else {
+      portCOn(select_pin);
+      portCOn(start_pin);
+      double_counter = -1;
+    }
   }
   
   delay(15);
