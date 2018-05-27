@@ -1,16 +1,33 @@
+/**
+ * Sidewinder Precision Pro Adapter for Star Fox
+ * 
+ * MS製フライトスティック Sidewinder Precision Pro をスーパーファミコンに
+ * 接続して、スターフォックスを遊ぶアダプタ。
+ * 
+ * コントロールモードAに対応
+ * ローリング（LまたはRの連打による回転）は未対応
+ * 
+ */
+
 #include "PrecisionPro.h"
 
-#define PIN_REVERSE 8
+#define PIN_TRIGGER 2 // Precision Proのトリガーとつなぐデジタルピン
+#define PIN_CLEAR   7 // Precision Proとの通信開始（レジスタクリア）のデジタルピン
 
-#define PIN_TRIGGER 2
-#define PIN_CLEAR   7
-
+#define portBOn(p)      (PORTB |= _BV(p))
+#define portBOff(p)     (PORTB &= ~_BV(p))
 #define portCOn(p)      (PORTC |= _BV(p))
 #define portCOff(p)     (PORTC &= ~_BV(p))
 #define portDOn(p)      (PORTD |= _BV(p))
 #define portDOff(p)     (PORTD &= ~_BV(p))
 
 #define isPortB(p)      ((PORTB & _BV(p)) != 0)
+
+bool mode_rapid_fire = false; // fireキー連射モード
+bool mode_reverse = false;    // 上下反転モード
+bool mode_super = true;       // スーパーファミコンモード
+
+
 
 PrecisionPro * pp;
 
@@ -22,34 +39,36 @@ ISR (SPI_STC_vect)
 
 
 const int threshold = 32;
+
+// キー/ボタンに対応するデジタルピン
+
+// 上下左右はPWM対応のピンであること（疑似アナログジョイスティック）
 const int up_pin = 6;
 const int down_pin = 5;
-const int right_pin = 3;
+const int right_pin = 4;
 const int left_pin = 9;
 
+// ボタンは基本アナログピン(ポートC）を使用
 const int a_pin = 0; // A0
 const int b_pin = 1; // A1
 const int select_pin = 2; // A2
 const int start_pin = 3; // A3
 
 const int sfc_a_pin = 4; // A4 
-const int sfc_b_pin = a_pin; // A5 
-const int sfc_x_pin = 5; // A4 
-const int sfc_y_pin = b_pin; // A5 
-const int sfc_l_pin = 6; // A6 
-const int sfc_r_pin = 7; // A7
+const int sfc_b_pin = a_pin;
+const int sfc_x_pin = 5; // A5 
+const int sfc_y_pin = b_pin;  
 
-#if 0
-const int fire_pin = b_pin;
-const int top_pin = a_pin;
-const int top_up_pin = select_pin;
-const int top_down_pin = start_pin;
-#else
-const int fire_pin = sfc_y_pin;
-const int top_pin = sfc_a_pin;
-const int top_up_pin = sfc_x_pin;
-const int top_down_pin = sfc_b_pin;
-#endif
+const int sfc_l_pin = 3; 
+const int sfc_r_pin = 0; // ここだけD8(ポートB)ピン
+
+
+// ファミコンの場合のファイア・トップボタンの割り振り
+// トップアップ/ダウンキーにセレクト・スタートを割り振る
+int fire_pin = b_pin;
+int top_pin = a_pin;
+int top_up_pin = select_pin;
+int top_down_pin = start_pin;
 
 
 void setup (void)
@@ -61,6 +80,9 @@ void setup (void)
   pinMode(left_pin, OUTPUT);
   pinMode(right_pin, OUTPUT);
 
+  pinMode(sfc_l_pin, OUTPUT);
+  pinMode(8, OUTPUT);
+
   for (int i = A0; i <= A5; i++) { 
     pinMode(i, OUTPUT);
   }
@@ -70,11 +92,36 @@ void setup (void)
   portDOn(left_pin);
   portDOn(right_pin);
 
+  portDOn(sfc_l_pin);
+  portBOn(sfc_r_pin);
+
   for (int i = 0; i < 6; i++) {
     portCOn(i);
   }
 
   pp = new PrecisionPro(MOSI, SCK, SS, PIN_TRIGGER, PIN_CLEAR);
+//  Serial.println("Waiting...");
+//  for (int i = 0; i < 3; i++){
+//    digitalWrite(LED_BUILTIN, HIGH);
+//    delay(500);
+//    digitalWrite(LED_BUILTIN, LOW);
+//    delay(500);
+//  }
+//  Serial.println("Update");
+//  pp->update();
+//  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
+//  volatile sw_data_t & sw_data = pp->data();
+//  Serial.println(pp->b());
+//
+//  mode_rapid_fire = pp->b();
+
+  if (mode_super) {
+    // スーファミの場合のファイア・トップボタンの割り振り
+    fire_pin = sfc_y_pin;
+    top_pin = sfc_a_pin;
+    top_up_pin = sfc_x_pin;
+    top_down_pin = sfc_b_pin;
+  }
 }
 
 int p_down, p_up;
@@ -82,7 +129,7 @@ int rapid_counter = 1;
 const int rapid_interval = 6;
 
 int double_counter = -1;
-const int double_interval = 15;
+const int double_interval = 60;
 
 int cnt=0;
 
@@ -96,13 +143,13 @@ void loop (void)
   int x = pp->x();
   int y = pp->y();
 
-//  if (isPortB(PIN_REVERSE)) {
+  if (mode_reverse) {
     p_up = down_pin;
     p_down = up_pin;  
-//  } else {
-//    p_up = up_pin;
-//    p_down = down_pin;    
-//  }
+  } else {
+    p_up = up_pin;
+    p_down = down_pin;    
+  }
 
 //  Serial.print(x);
 //  Serial.print(", ");
@@ -113,7 +160,8 @@ void loop (void)
 //  Serial.print("; r:");
 //  Serial.print(pp->r());
 //  Serial.print("; head:");
-//  Serial.println(pp->head());
+//  Serial.print(pp->head());
+//  Serial.println();
   
   x/=2;
   y/=2;
@@ -144,6 +192,7 @@ void loop (void)
     x = 0;
   }
 
+  // HATスイッチ
   if (x == 0 && y == 0) {
     switch (pp->head()) {
     case 0:
@@ -182,23 +231,32 @@ void loop (void)
     }
   }
 
-
-  if (pp->fire()) {
-    //Serial.println("B");
-    if (--rapid_counter == 0) {
+  // ファイアボタン
+  if (mode_rapid_fire) {
+    if (pp->fire()) {
+      //Serial.println("B");
+      if (--rapid_counter == 0) {
+        portCOff(fire_pin);
+        rapid_counter = rapid_interval;
+      } else {
+        portCOn(fire_pin);
+      }
+    } else if (pp->b()) {
       portCOff(fire_pin);
-      rapid_counter = rapid_interval;
+      rapid_counter = 1;
+    } else {
+      portCOn(fire_pin);
+      rapid_counter = 1;
+    }
+  } else {
+    if (pp->fire() || pp->b()) {
+      portCOff(fire_pin);
     } else {
       portCOn(fire_pin);
     }
-  } else if (pp->b()) {
-    portCOff(fire_pin);
-    rapid_counter = 1;
-  } else {
-    portCOn(fire_pin);
-    rapid_counter = 1;
   }
-  
+
+  // トップボタン
   if (pp->top() || pp->a()) {
     //Serial.println("A");
     portCOff(top_pin);
@@ -221,6 +279,7 @@ void loop (void)
   if (double_counter >= 0) {
     double_counter--;
   }
+  
   // shiftキー一瞬押しでSTART, 長押しでSELECT
   if (pp->shift()) {
     if (double_counter < 0) {
@@ -228,7 +287,7 @@ void loop (void)
     } else if (double_counter == 0) {
       Serial.println("SELECT");
       portCOff(select_pin);
-    }
+    } 
   } else {
     if (double_counter > 0) {
       Serial.println("START");
@@ -240,6 +299,33 @@ void loop (void)
       double_counter = -1;
     }
   }
+
+  // スロットル→X,Bボタン
+  if (pp->m() < 16) {
+    portCOff(sfc_b_pin);    
+  } else {
+    portCOn(sfc_b_pin);    
+  }
+  
+  if (pp->m() > 104) {
+    portCOff(sfc_x_pin);    
+  } else {
+    portCOn(sfc_x_pin);    
+  }
+
+  // ツイスト→LR
+  if (pp->r() <= -16) {
+    portDOff(sfc_l_pin);
+  } else {
+    portDOn(sfc_l_pin);
+  }
+
+  if (pp->r() >= 15) {
+    portBOff(sfc_r_pin);
+  } else {
+    portBOn(sfc_r_pin);
+  }
   
   delay(15);
 }
+
