@@ -291,6 +291,7 @@ void loop (void)
   if (mode_rapid_fire) {
     if (pp->fire()) {
       //Serial.println("B");
+      // 連射
       if (--rapid_counter == 0) {
         portCOff(fire_pin);
         rapid_counter = rapid_interval;
@@ -305,6 +306,7 @@ void loop (void)
       rapid_counter = 1;
     }
   } else {
+    // 連射なし
     if (pp->fire() || pp->b()) {
       portCOff(fire_pin);
     } else {
