@@ -191,20 +191,34 @@ void loop (void)
   int y = pp->y();
   char * buf = pp->data().buf;
 
+#if 0
+  Serial.print(++cnt);
+  for (int i=0; i<6; i++) {
+    Serial.print(": ");
+    Serial.print(*buf++, HEX);
   }
+  
+  Serial.print(": (");
+  Serial.print(x);
+  Serial.print(", ");
+  Serial.print(y);
+  Serial.print(")");
 
-//  Serial.print(x);
-//  Serial.print(", ");
-//  Serial.println(y);
-//  Serial.print(cnt++);
+  Serial.print(" top_up: ");
+  Serial.print(top_up_pin);
+
+  Serial.print(" top_down: ");
+  Serial.print(top_down_pin);
+
 //  Serial.print("; m: ");
 //  Serial.print(pp->m());
 //  Serial.print("; r:");
 //  Serial.print(pp->r());
 //  Serial.print("; head:");
 //  Serial.print(pp->head());
-//  Serial.println();
-  
+  Serial.println();
+#endif
+
   x/=2;
   y/=2;
   if (y > threshold) {
