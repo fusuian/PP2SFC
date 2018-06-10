@@ -23,6 +23,9 @@
 
 #define isPortB(p)      ((PORTB & _BV(p)) != 0)
 
+int initialize_wait = 3*60;   // 初期化待機時間
+int count_threshold = 90;     // 初期化待機中に特定のボタンが一定カウント押された場合、ボタンに対応するモードをセットする。
+
 bool mode_rapid_fire = false; // fireキー連射モード
 bool mode_reverse = false;    // 上下反転モード
 bool mode_super = true;       // スーパーファミコンモード
@@ -100,20 +103,52 @@ void setup (void)
   }
 
   pp = new PrecisionPro(MOSI, SCK, SS, PIN_TRIGGER, PIN_CLEAR);
-//  Serial.println("Waiting...");
-//  for (int i = 0; i < 3; i++){
-//    digitalWrite(LED_BUILTIN, HIGH);
-//    delay(500);
-//    digitalWrite(LED_BUILTIN, LOW);
-//    delay(500);
-//  }
-//  Serial.println("Update");
-//  pp->update();
-//  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
-//  volatile sw_data_t & sw_data = pp->data();
-//  Serial.println(pp->b());
-//
-//  mode_rapid_fire = pp->b();
+}
+
+int p_down, p_up;             // mode_reverseのために、アップダウンのピン番号を保持
+int rapid_counter = 1;        // 連射間隔を制御するカウンタ
+const int rapid_interval = 6; // 連射間隔
+
+int double_counter = -1;        // SELECT/START押し分けのためのカウンタ
+const int double_interval = 60; // SELECT/START押し分けのタイミング
+
+int cnt=0;
+
+// 設定用カウンタ
+int c_rapid_fire = 0;
+int c_reverse = 0;
+int c_super = 0;
+
+// 初期化待機中、特定のボタンを押し続けると動作モードが切り替わる
+void wait()
+{
+//    Serial.print("wait: ");
+//    Serial.print(pp->fire());
+//    Serial.print(pp->y());
+//    Serial.println(pp->shift());
+
+    // ファイアボタン→連射
+    if (pp->fire()) {
+      c_rapid_fire++;
+    }
+    // トップボタン→上下反転
+    if (pp->top()) {
+      c_reverse++;
+    }
+    // シフトボタン→スーファミモード
+    if (pp->shift()) {
+      c_super++;
+    }
+}
+
+
+// 初期化待機中のコマンドに応じて設定を変更する
+void initialize()
+{
+  Serial.println("initialize");
+  mode_rapid_fire = (c_rapid_fire > count_threshold);
+  mode_reverse = (c_reverse > count_threshold);
+  mode_super = (c_super > count_threshold);
 
   if (mode_super) {
     // スーファミの場合のファイア・トップボタンの割り振り
@@ -122,33 +157,40 @@ void setup (void)
     top_up_pin = sfc_x_pin;
     top_down_pin = sfc_b_pin;
   }
-}
 
-int p_down, p_up;
-int rapid_counter = 1;
-const int rapid_interval = 6;
-
-int double_counter = -1;
-const int double_interval = 60;
-
-int cnt=0;
-
-void loop (void)
-{
-  pp->update();
-  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
-
-  volatile sw_data_t & sw_data = pp->data();
-
-  int x = pp->x();
-  int y = pp->y();
-
+  // 上下反転
   if (mode_reverse) {
     p_up = down_pin;
     p_down = up_pin;  
   } else {
     p_up = up_pin;
     p_down = down_pin;    
+  }
+}
+
+
+void loop (void)
+{
+  pp->update();
+  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
+
+  // 初期化待機
+  if (initialize_wait > 0) {
+    --initialize_wait;
+    wait();
+    delay(16);
+    return;
+  } else if (initialize_wait == 0) {
+    --initialize_wait;
+    initialize();
+    delay(16);
+    return;
+  }
+
+  int x = pp->x();
+  int y = pp->y();
+  char * buf = pp->data().buf;
+
   }
 
 //  Serial.print(x);
@@ -258,74 +300,77 @@ void loop (void)
 
   // トップボタン
   if (pp->top() || pp->a()) {
-    //Serial.println("A");
     portCOff(top_pin);
   } else {
     portCOn(top_pin);
   }
-  
+
+  bool non_top_up = true;
+  bool non_top_down = true;
+
+  // トップ上ボタン
   if (pp->top_up() || pp->c()) {
     portCOff(top_up_pin);
+    non_top_up = false;
   } else {
     portCOn(top_up_pin);
   }
-   
+  
+  // トップ下ボタン
   if (pp->top_down() || pp->d()) {
     portCOff(top_down_pin);
+    non_top_down = false;
   } else {
     portCOn(top_down_pin);
   }
 
-  if (double_counter >= 0) {
-    double_counter--;
-  }
+  if (mode_super) {
+    // スロットル→X,Bボタン
+    if (non_top_down) {
+      if (pp->m() < 16) {
+        portCOff(sfc_b_pin);    
+      } else {
+        portCOn(sfc_b_pin);    
+      }
+    }
+        
+    if (non_top_up) {
+      if (pp->m() > 104) {
+        portCOff(sfc_x_pin);    
+      } else {
+        portCOn(sfc_x_pin);    
+      }
+    }
   
-  // shiftキー一瞬押しでSTART, 長押しでSELECT
-  if (pp->shift()) {
-    if (double_counter < 0) {
-      double_counter = double_interval;
-    } else if (double_counter == 0) {
-      Serial.println("SELECT");
-      portCOff(select_pin);
-    } 
-  } else {
-    if (double_counter > 0) {
-      Serial.println("START");
-      portCOff(start_pin);
-      double_counter = -1;
+    // ツイスト→LR
+    if (pp->r() <= -16) {
+      portDOff(sfc_l_pin);
     } else {
-      portCOn(select_pin);
-      portCOn(start_pin);
-      double_counter = -1;
+      portDOn(sfc_l_pin);
+    }
+  
+    if (pp->r() >= 15) {
+      portBOff(sfc_r_pin);
+    } else {
+      portBOn(sfc_r_pin);
+    }
+
+    // シフト+top_up/top_down → SELECT, START
+    if (pp->shift()) {
+      if (pp->top_up() || pp->c()) {
+        portCOff(select_pin);
+      } else {
+        portCOn(select_pin);
+      }
+       
+      if (pp->top_down() || pp->d()) {
+        portCOff(start_pin);
+      } else {
+        portCOn(start_pin);
+      }
     }
   }
 
-  // スロットル→X,Bボタン
-  if (pp->m() < 16) {
-    portCOff(sfc_b_pin);    
-  } else {
-    portCOn(sfc_b_pin);    
-  }
-  
-  if (pp->m() > 104) {
-    portCOff(sfc_x_pin);    
-  } else {
-    portCOn(sfc_x_pin);    
-  }
-
-  // ツイスト→LR
-  if (pp->r() <= -16) {
-    portDOff(sfc_l_pin);
-  } else {
-    portDOn(sfc_l_pin);
-  }
-
-  if (pp->r() >= 15) {
-    portBOff(sfc_r_pin);
-  } else {
-    portBOn(sfc_r_pin);
-  }
-  
   delay(15);
 }
 
