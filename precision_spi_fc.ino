@@ -167,29 +167,12 @@ void initialize()
 }
 
 
-void loop (void)
+void print_status()
 {
-  pp->update();
-  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
-
-  // 初期化待機
-  if (initialize_wait > 0) {
-    --initialize_wait;
-    wait();
-    delay(16);
-    return;
-  } else if (initialize_wait == 0) {
-    --initialize_wait;
-    initialize();
-    delay(16);
-    return;
-  }
-
   int x = pp->x();
   int y = pp->y();
   char * buf = pp->data().buf;
 
-#if 1
   Serial.print(++cnt);
   Serial.print(": ");
   for (int i=0; i < 6; i++){
@@ -220,10 +203,17 @@ void loop (void)
   Serial.print("; head:");
   Serial.print(pp->head());
   Serial.println();
-#endif
+}
 
-  x/=2;
-  y/=2;
+
+void loop (void)
+{
+  pp->update();
+  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
+
+  print_status();
+
+  int y = pp->y() / 2;
   if (y > threshold) {
     //Serial.println(255-y);
     analogWrite(p_down, 255-y);
@@ -239,6 +229,7 @@ void loop (void)
     y = 0;
   }
 
+  int x = pp->x() / 2;
   if (x > threshold) {
     analogWrite(right_pin, 255-x);
   } else {
