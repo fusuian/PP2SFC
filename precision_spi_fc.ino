@@ -40,22 +40,23 @@ const int threshold = 32;
 // 上下左右はPWM対応のピンであること（疑似アナログジョイスティック）
 const int up_pin = 6;
 const int down_pin = 5;
-const int right_pin = 4;
-const int left_pin = 9;
+const int right_pin = 9;
+const int left_pin = 3;
 
 // ボタンは基本アナログピン(ポートC）を使用
-const int a_pin = 0; // A0
-const int b_pin = 1; // A1
-const int select_pin = 2; // A2
-const int start_pin = 3; // A3
+// 配線を簡略化するため、SFCのB,AボタンのみポートD
+const int a_pin = 8;
+const int b_pin = A3;
+const int select_pin = A4;
+const int start_pin =  A5;
 
-const int sfc_a_pin = 4; // A4 
+const int sfc_a_pin = 4;
 const int sfc_b_pin = a_pin;
-const int sfc_x_pin = 5; // A5 
+const int sfc_x_pin = A0;
 const int sfc_y_pin = b_pin;
 
-const int sfc_l_pin = 3; 
-const int sfc_r_pin = 0; // ここだけD8(ポートB)ピン
+const int sfc_l_pin = A1;
+const int sfc_r_pin = A2;
 
 
 // ファミコンの場合のファイア・トップボタンの割り振り
