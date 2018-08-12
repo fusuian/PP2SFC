@@ -2,6 +2,7 @@
 #define _PRECISIONPRO_
 
 #include <SPI.h>
+#include "portmacro.h"
 
 // SPI pins
 // SCK  D13 // -> Game port 2 // pull up
@@ -10,7 +11,7 @@
 // SS   D10 // <- PIN_CLEAR
 
 // Trigger pin
-// PIN_TRIGGER 3 // D2-7 // -> Game port 3
+// PIN_TRIGGER -> Game port 3
 
 
 // data structure as sent from my sidewinder device, 48 bits total
@@ -32,7 +33,7 @@ typedef union
     unsigned int btn_b:1;         // bit  6
     unsigned int btn_c:1;         // bit  7
     unsigned int btn_d:1;         // bit  8
-    
+
     unsigned int btn_shift:1;     // bit  9
 
     unsigned int x:10;            // bits 10-19
@@ -70,7 +71,6 @@ class PrecisionPro
 
   public:
 
-  // pin_trigger and pin_clear must be 2-7(as D2-D7)
   PrecisionPro(int mosi, int sck, int ss, int pin_trigger, int pin_clear)
   {
     MOSI = mosi;
@@ -78,35 +78,35 @@ class PrecisionPro
     SS = ss;
     PIN_CLEAR = pin_clear;
     PIN_TRIGGER = pin_trigger;
-    
+
     pinMode(PIN_TRIGGER, OUTPUT);
     pinMode(PIN_CLEAR,   OUTPUT);
     digitalWrite(PIN_CLEAR, LOW);
-    
+
     // SPI スレーブモード設定
     pinMode(MOSI, INPUT);
     pinMode(SCK, INPUT);
     pinMode(SS,  INPUT);
 
     SPCR |= _BV(SPE); // set slave mode
-    SPI.setBitOrder(LSBFIRST); 
+    SPI.setBitOrder(LSBFIRST);
     SPI.attachInterrupt();
   }
 
 
   void update()
   {
-    PORTD &= ~_BV(PIN_TRIGGER);
+    portOff(PIN_TRIGGER);
     delayMicroseconds(500);
     // SSをHIGHにしてSPIのシフトレジスタをクリア
-    PORTD |=  _BV(PIN_CLEAR);
+    portOn(PIN_CLEAR);
     delayMicroseconds(100);
-    PORTD &= ~_BV(PIN_CLEAR);
-    
+    portOff(PIN_CLEAR);
+
     delayMicroseconds(400);
-    
+
     pos = 0;
-    PORTD |= _BV(PIN_TRIGGER);
+    portOn(PIN_TRIGGER);
 
     // 呼び出し側で1000us待ったあと、結果がPrecisionPro::dataに反映する
   }
@@ -115,7 +115,7 @@ class PrecisionPro
   void add_buf(uint8_t spdr) {
     sw_data.buf[pos++] = spdr;
   }
-  
+
   volatile sw_data_t & data() {
     return sw_data;
   }
@@ -180,7 +180,7 @@ class PrecisionPro
 
 
 
-  
+
 };
 
 #endif
