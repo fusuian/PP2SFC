@@ -15,12 +15,9 @@
 #define PIN_TRIGGER 2 // Precision Proのトリガーとつなぐデジタルピン
 #define PIN_CLEAR   7 // Precision Proとの通信開始（レジスタクリア）のデジタルピン
 
-int initialize_wait = 3*60;   // 初期化待機時間
-int count_threshold = 90;     // 初期化待機中に特定のボタンが一定カウント押された場合、ボタンに対応するモードをセットする。
-
-bool mode_rapid_fire = false; // fireキー連射モード
-bool mode_reverse = false;    // 上下反転モード
-bool mode_super = true;       // スーパーファミコンモード
+bool mode_rapid_fire; // fireキー連射モード
+bool mode_reverse;    // 上下反転モード
+bool mode_super;      // スーパーファミコンモード(トップアップ/ダウンキーがXYボタンになり、スティックのひねりがLRボタンになる)
 
 
 
@@ -33,7 +30,7 @@ ISR (SPI_STC_vect)
 }
 
 
-const int threshold = 32;
+const int threshold = 100;
 
 // キー/ボタンに対応するデジタルピン
 
@@ -59,13 +56,52 @@ const int sfc_l_pin = A1;
 const int sfc_r_pin = A2;
 
 
-// ファミコンの場合のファイア・トップボタンの割り振り
-// トップアップ/ダウンキーにセレクト・スタートを割り振る
-int fire_pin = b_pin;
-int top_pin = a_pin;
-int top_up_pin = select_pin;
-int top_down_pin = start_pin;
+int fire_pin;
+int top_pin;
+int top_up_pin;
+int top_down_pin;
 
+int p_down, p_up;             // mode_reverseのために、アップダウンのピン番号を保持
+int rapid_counter = 1;        // 連射間隔を制御するカウンタ
+const int rapid_interval = 6; // 連射間隔
+
+unsigned int cnt = 0;
+unsigned int cnt_shift;
+
+// ファミコン/スーファミによって、操縦桿の頭のファイア/トップ/
+// トップアップ/トップダウンボタンの割り振りを変更する
+void set_super(bool state)
+{
+  mode_super = state;
+  if (state) {
+    // スーファミの場合 Y/A/X/B
+    // セレクト/スタートは、シフトキー + トップアップ/ダウン
+    fire_pin = sfc_y_pin;
+    top_pin = sfc_a_pin;
+    top_up_pin = sfc_x_pin;
+    top_down_pin = sfc_b_pin;
+  } else {
+    // ファミコンの場合 B/A/Select/Start
+    fire_pin = b_pin;
+    top_pin = a_pin;
+    top_up_pin = select_pin;
+    top_down_pin = start_pin;
+  }
+}
+
+// 操縦桿の上下反転モードを設定する
+void set_reverse(bool state)
+{
+  mode_reverse = state;
+  // 上下反転
+  if (state) {
+    p_up = down_pin;
+    p_down = up_pin;
+  } else {
+    p_up = up_pin;
+    p_down = down_pin;
+  }
+}
 
 void setup (void)
 {
@@ -101,71 +137,10 @@ void setup (void)
   portOn(sfc_r_pin);
 
   pp = new PrecisionPro(MOSI, SCK, SS, PIN_TRIGGER, PIN_CLEAR);
+  set_super(false);
+  set_reverse(true);
+  mode_rapid_fire = false;
 }
-
-int p_down, p_up;             // mode_reverseのために、アップダウンのピン番号を保持
-int rapid_counter = 1;        // 連射間隔を制御するカウンタ
-const int rapid_interval = 6; // 連射間隔
-
-int double_counter = -1;        // SELECT/START押し分けのためのカウンタ
-const int double_interval = 60; // SELECT/START押し分けのタイミング
-
-int cnt=0;
-
-// 設定用カウンタ
-int c_rapid_fire = 0;
-int c_reverse = 0;
-int c_super = 0;
-
-// 初期化待機中、特定のボタンを押し続けると動作モードが切り替わる
-void wait()
-{
-//    Serial.print("wait: ");
-//    Serial.print(pp->fire());
-//    Serial.print(pp->y());
-//    Serial.println(pp->shift());
-
-    // ファイアボタン→連射
-    if (pp->fire()) {
-      c_rapid_fire++;
-    }
-    // トップボタン→上下反転
-    if (pp->top()) {
-      c_reverse++;
-    }
-    // シフトボタン→スーファミモード
-    if (pp->shift()) {
-      c_super++;
-    }
-}
-
-
-// 初期化待機中のコマンドに応じて設定を変更する
-void initialize()
-{
-  Serial.println(F("initialize"));
-  mode_rapid_fire = (c_rapid_fire > count_threshold);
-  mode_reverse = (c_reverse > count_threshold);
-  mode_super = (c_super > count_threshold);
-
-  if (mode_super) {
-    // スーファミの場合のファイア・トップボタンの割り振り
-    fire_pin = sfc_y_pin;
-    top_pin = sfc_a_pin;
-    top_up_pin = sfc_x_pin;
-    top_down_pin = sfc_b_pin;
-  }
-
-  // 上下反転
-  if (mode_reverse) {
-    p_up = down_pin;
-    p_down = up_pin;
-  } else {
-    p_up = up_pin;
-    p_down = down_pin;
-  }
-}
-
 
 void print_status()
 {
@@ -206,13 +181,55 @@ void print_status()
 }
 
 
-void loop (void)
+char pf, pt;
+
+void shift()
 {
-  pp->update();
-  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
+  if (mode_super) {
+    // top_up/top_down → SELECT, START
+    if (pp->top_up()) {
+      portOff(select_pin);
+    } else {
+      portOn(select_pin);
+    }
 
-  print_status();
+    if (pp->top_down()) {
+      portOff(start_pin);
+    } else {
+      portOn(start_pin);
+    }
+  }
 
+  // ファイアボタンで連射のオン・オフを切り替え
+  int f = pp->fire();
+  if (f && pf == 0) {
+    mode_rapid_fire = !mode_rapid_fire;
+  }
+  pf = f;
+
+  // トップボタンでスーファミモードを切り替え
+  int t = pp->top();
+  if (t && pt == 0) {
+    set_super(!mode_super);
+  }
+  pt = t;
+
+  // HATスイッチの上下で操縦桿の上下を反転
+  switch (pp->head()) {
+  case 1:
+    set_reverse(false);
+    break;
+  case 5:
+    set_reverse(true);
+    break;
+  default:
+    break;
+  }
+}
+
+
+void arrow_key()
+{
   int y = pp->y() / 2;
   if (y > threshold) {
     //Serial.println(255-y);
@@ -280,7 +297,11 @@ void loop (void)
         break;
     }
   }
+}
 
+
+void buttons()
+{
   // ファイアボタン
   if (mode_rapid_fire) {
     if (pp->fire()) {
@@ -335,7 +356,7 @@ void loop (void)
   }
 
   if (mode_super) {
-  // スロットル→X,Bボタン
+  // スロットル→X,Bボタン（for STARFOX）
     if (non_top_down) {
       if (pp->m() < 16) {
         portOff(sfc_b_pin);
@@ -365,22 +386,25 @@ void loop (void)
       portOn(sfc_r_pin);
     }
 
-    // シフト+top_up/top_down → SELECT, START
-    if (pp->shift()) {
-      if (pp->top_up() || pp->c()) {
-        portOff(select_pin);
-      } else {
-        portOn(select_pin);
-      }
-
-      if (pp->top_down() || pp->d()) {
-        portOff(start_pin);
-      } else {
-        portOn(start_pin);
-      }
-    }
   }
+}
 
+
+void loop (void)
+{
+  pp->update();
+  delayMicroseconds(1000); // ここで待機する間に割り込みでSPI受信
+
+  print_status();
+
+  if (pp->shift()) {
+    cnt_shift++;
+    shift();
+  } else {
+    cnt_shift = 0;
+    arrow_key();
+    buttons();
+  }
   delay(15);
 }
 
