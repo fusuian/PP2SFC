@@ -69,7 +69,7 @@ int top_down_pin = start_pin;
 
 void setup (void)
 {
-  Serial.begin (115200);   // debugging
+  Serial.begin(57600);   // debugging
 
   pinMode(up_pin, OUTPUT);
   pinMode(down_pin, OUTPUT);
@@ -143,7 +143,7 @@ void wait()
 // 初期化待機中のコマンドに応じて設定を変更する
 void initialize()
 {
-  Serial.println("initialize");
+  Serial.println(F("initialize"));
   mode_rapid_fire = (c_rapid_fire > count_threshold);
   mode_reverse = (c_reverse > count_threshold);
   mode_super = (c_super > count_threshold);
@@ -189,31 +189,36 @@ void loop (void)
   int y = pp->y();
   char * buf = pp->data().buf;
 
-#if 0
+#if 1
   Serial.print(++cnt);
-  for (int i=0; i < 6; i++){  
+  Serial.print(": ");
+  for (int i=0; i < 6; i++){
+      unsigned char b = buf[i];
+      if (b < 16) {
+        Serial.print("0");
+      }
+      Serial.print(b, HEX);
       Serial.print(":");
-    Serial.print(*buf++, HEX);
   }
 
-  Serial.print(": (");
+  Serial.print(" (");
   Serial.print(x);
   Serial.print(", ");
   Serial.print(y);
   Serial.print(")");
 
-  Serial.print(" top_up: ");
-  Serial.print(top_up_pin);
+//  Serial.print(" top_up: ");
+//  Serial.print(top_up_pin);
+//
+//  Serial.print(" top_down: ");
+//  Serial.print(top_down_pin);
 
-  Serial.print(" top_down: ");
-  Serial.print(top_down_pin);
-
-//  Serial.print("; m: ");
-//  Serial.print(pp->m());
-//  Serial.print("; r:");
-//  Serial.print(pp->r());
-//  Serial.print("; head:");
-//  Serial.print(pp->head());
+  Serial.print("; m: ");
+  Serial.print(pp->m());
+  Serial.print("; r:");
+  Serial.print(pp->r());
+  Serial.print("; head:");
+  Serial.print(pp->head());
   Serial.println();
 #endif
 
