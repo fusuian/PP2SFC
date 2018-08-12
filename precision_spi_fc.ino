@@ -1,27 +1,19 @@
 /**
  * Sidewinder Precision Pro Adapter for Star Fox
- * 
+ *
  * MS製フライトスティック Sidewinder Precision Pro をスーパーファミコンに
  * 接続して、スターフォックスを遊ぶアダプタ。
- * 
+ *
  * コントロールモードAに対応
  * ローリング（LまたはRの連打による回転）は未対応
- * 
+ *
  */
 
 #include "PrecisionPro.h"
+#include "portmacro.h"
 
 #define PIN_TRIGGER 2 // Precision Proのトリガーとつなぐデジタルピン
 #define PIN_CLEAR   7 // Precision Proとの通信開始（レジスタクリア）のデジタルピン
-
-#define portBOn(p)      (PORTB |= _BV(p))
-#define portBOff(p)     (PORTB &= ~_BV(p))
-#define portCOn(p)      (PORTC |= _BV(p))
-#define portCOff(p)     (PORTC &= ~_BV(p))
-#define portDOn(p)      (PORTD |= _BV(p))
-#define portDOff(p)     (PORTD &= ~_BV(p))
-
-#define isPortB(p)      ((PORTB & _BV(p)) != 0)
 
 int initialize_wait = 3*60;   // 初期化待機時間
 int count_threshold = 90;     // 初期化待機中に特定のボタンが一定カウント押された場合、ボタンに対応するモードをセットする。
@@ -60,7 +52,7 @@ const int start_pin = 3; // A3
 const int sfc_a_pin = 4; // A4 
 const int sfc_b_pin = a_pin;
 const int sfc_x_pin = 5; // A5 
-const int sfc_y_pin = b_pin;  
+const int sfc_y_pin = b_pin;
 
 const int sfc_l_pin = 3; 
 const int sfc_r_pin = 0; // ここだけD8(ポートB)ピン
@@ -83,24 +75,29 @@ void setup (void)
   pinMode(left_pin, OUTPUT);
   pinMode(right_pin, OUTPUT);
 
+  pinMode(select_pin, OUTPUT);
+  pinMode(start_pin, OUTPUT);
+
+  pinMode(sfc_a_pin, OUTPUT);
+  pinMode(sfc_b_pin, OUTPUT);
+  pinMode(sfc_x_pin, OUTPUT);
+  pinMode(sfc_y_pin, OUTPUT);
   pinMode(sfc_l_pin, OUTPUT);
-  pinMode(8, OUTPUT);
+  pinMode(sfc_r_pin, OUTPUT);
 
-  for (int i = A0; i <= A5; i++) { 
-    pinMode(i, OUTPUT);
-  }
+  portOn(up_pin);
+  portOn(down_pin);
+  portOn(left_pin);
+  portOn(right_pin);
+  portOn(select_pin);
+  portOn(start_pin);
 
-  portDOn(up_pin);
-  portDOn(down_pin);
-  portDOn(left_pin);
-  portDOn(right_pin);
-
-  portDOn(sfc_l_pin);
-  portBOn(sfc_r_pin);
-
-  for (int i = 0; i < 6; i++) {
-    portCOn(i);
-  }
+  portOn(sfc_a_pin);
+  portOn(sfc_b_pin);
+  portOn(sfc_x_pin);
+  portOn(sfc_y_pin);
+  portOn(sfc_l_pin);
+  portOn(sfc_r_pin);
 
   pp = new PrecisionPro(MOSI, SCK, SS, PIN_TRIGGER, PIN_CLEAR);
 }
@@ -161,10 +158,10 @@ void initialize()
   // 上下反転
   if (mode_reverse) {
     p_up = down_pin;
-    p_down = up_pin;  
+    p_down = up_pin;
   } else {
     p_up = up_pin;
-    p_down = down_pin;    
+    p_down = down_pin;
   }
 }
 
@@ -193,11 +190,11 @@ void loop (void)
 
 #if 0
   Serial.print(++cnt);
-  for (int i=0; i<6; i++) {
-    Serial.print(": ");
+  for (int i=0; i < 6; i++){  
+      Serial.print(":");
     Serial.print(*buf++, HEX);
   }
-  
+
   Serial.print(": (");
   Serial.print(x);
   Serial.print(", ");
@@ -227,7 +224,7 @@ void loop (void)
   } else {
     analogWrite(p_down, 255);
   }
-  
+
   if (y < -threshold) {
 //    Serial.println(256+y);
     analogWrite(p_up, 256+y);
@@ -293,32 +290,32 @@ void loop (void)
       //Serial.println("B");
       // 連射
       if (--rapid_counter == 0) {
-        portCOff(fire_pin);
+        portOff(fire_pin);
         rapid_counter = rapid_interval;
       } else {
-        portCOn(fire_pin);
+        portOn(fire_pin);
       }
     } else if (pp->b()) {
-      portCOff(fire_pin);
+      portOff(fire_pin);
       rapid_counter = 1;
     } else {
-      portCOn(fire_pin);
+      portOn(fire_pin);
       rapid_counter = 1;
     }
   } else {
     // 連射なし
     if (pp->fire() || pp->b()) {
-      portCOff(fire_pin);
+      portOff(fire_pin);
     } else {
-      portCOn(fire_pin);
+      portOn(fire_pin);
     }
   }
 
   // トップボタン
   if (pp->top() || pp->a()) {
-    portCOff(top_pin);
+    portOff(top_pin);
   } else {
-    portCOn(top_pin);
+    portOn(top_pin);
   }
 
   bool non_top_up = true;
@@ -326,63 +323,63 @@ void loop (void)
 
   // トップ上ボタン
   if (pp->top_up() || pp->c()) {
-    portCOff(top_up_pin);
+    portOff(top_up_pin);
     non_top_up = false;
   } else {
-    portCOn(top_up_pin);
+    portOn(top_up_pin);
   }
-  
+
   // トップ下ボタン
   if (pp->top_down() || pp->d()) {
-    portCOff(top_down_pin);
+    portOff(top_down_pin);
     non_top_down = false;
   } else {
-    portCOn(top_down_pin);
+    portOn(top_down_pin);
   }
 
   if (mode_super) {
-    // スロットル→X,Bボタン
+  // スロットル→X,Bボタン
     if (non_top_down) {
       if (pp->m() < 16) {
-        portCOff(sfc_b_pin);    
+        portOff(sfc_b_pin);
       } else {
-        portCOn(sfc_b_pin);    
+        portOn(sfc_b_pin);
       }
     }
-        
+
     if (non_top_up) {
       if (pp->m() > 104) {
-        portCOff(sfc_x_pin);    
+        portOff(sfc_x_pin);
       } else {
-        portCOn(sfc_x_pin);    
+        portOn(sfc_x_pin);
       }
     }
-  
+
     // ツイスト→LR
-    if (pp->r() <= -16) {
-      portDOff(sfc_l_pin);
+    if (pp->r() <= -32) {
+      portOff(sfc_l_pin);
     } else {
-      portDOn(sfc_l_pin);
+      portOn(sfc_l_pin);
     }
-  
-    if (pp->r() >= 15) {
-      portBOff(sfc_r_pin);
+
+    if (pp->r() >= 20) {
+      portOff(sfc_r_pin);
     } else {
-      portBOn(sfc_r_pin);
+      portOn(sfc_r_pin);
     }
 
     // シフト+top_up/top_down → SELECT, START
     if (pp->shift()) {
       if (pp->top_up() || pp->c()) {
-        portCOff(select_pin);
+        portOff(select_pin);
       } else {
-        portCOn(select_pin);
+        portOn(select_pin);
       }
-       
+
       if (pp->top_down() || pp->d()) {
-        portCOff(start_pin);
+        portOff(start_pin);
       } else {
-        portCOn(start_pin);
+        portOn(start_pin);
       }
     }
   }
