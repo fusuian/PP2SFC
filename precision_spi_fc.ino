@@ -40,20 +40,19 @@ const int down_pin = 5;
 const int right_pin = 9;
 const int left_pin = 3;
 
-// ボタンは基本アナログピン(ポートC）を使用
-// 配線を簡略化するため、SFCのB,AボタンのみポートD
 const int a_pin = 8;
+const int sfc_a_pin = 4;
+const int sfc_b_pin = a_pin;
+const int sfc_y_pin = b_pin;
+
+
+
+const int sfc_x_pin = A0;
+const int sfc_l_pin = A1;
+const int sfc_r_pin = A2;
 const int b_pin = A3;
 const int select_pin = A4;
 const int start_pin =  A5;
-
-const int sfc_a_pin = 4;
-const int sfc_b_pin = a_pin;
-const int sfc_x_pin = A0;
-const int sfc_y_pin = b_pin;
-
-const int sfc_l_pin = A1;
-const int sfc_r_pin = A2;
 
 
 int fire_pin;
@@ -165,12 +164,6 @@ void print_status()
   Serial.print(y);
   Serial.print(")");
 
-//  Serial.print(" top_up: ");
-//  Serial.print(top_up_pin);
-//
-//  Serial.print(" top_down: ");
-//  Serial.print(top_down_pin);
-
   Serial.print("; m: ");
   Serial.print(pp->m());
   Serial.print("; r:");
@@ -232,14 +225,12 @@ void arrow_key()
 {
   int y = pp->y() / 2;
   if (y > threshold) {
-    //Serial.println(255-y);
     analogWrite(p_down, 255-y);
   } else {
     analogWrite(p_down, 255);
   }
 
   if (y < -threshold) {
-//    Serial.println(256+y);
     analogWrite(p_up, 256+y);
   } else {
     analogWrite(p_up, 255);
@@ -305,7 +296,6 @@ void buttons()
   // ファイアボタン
   if (mode_rapid_fire) {
     if (pp->fire()) {
-      //Serial.println("B");
       // 連射
       if (--rapid_counter == 0) {
         portOff(fire_pin);
