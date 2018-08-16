@@ -220,8 +220,77 @@ void shift()
   }
 }
 
+bool hat_switch()
+{
+    switch (pp->head()) {
+    case 0:
+        return false;
 
-void arrow_key()
+    case 1:
+        analogWrite(up_pin, 0);
+        analogWrite(down_pin, 255);
+        analogWrite(left_pin, 255);
+        analogWrite(right_pin, 255);
+        break;
+    case 2:
+        analogWrite(up_pin, 0);
+        analogWrite(down_pin, 255);
+        analogWrite(left_pin, 255);
+        analogWrite(right_pin, 0);
+        break;
+
+    case 3:
+        analogWrite(up_pin, 255);
+        analogWrite(down_pin, 255);
+        analogWrite(left_pin, 255);
+        analogWrite(right_pin, 0);
+        break;
+    
+    case 4:
+        analogWrite(up_pin, 255);
+        analogWrite(left_pin, 255);
+        analogWrite(down_pin, 0);
+        analogWrite(right_pin, 0);
+        break;
+
+    case 5:
+        analogWrite(up_pin, 255);
+        analogWrite(left_pin, 255);
+        analogWrite(right_pin, 255);
+        analogWrite(down_pin, 0);
+        break;
+    
+    case 6:
+        analogWrite(up_pin, 255);
+        analogWrite(right_pin, 255);
+        analogWrite(down_pin, 0);
+        analogWrite(left_pin, 0);
+        break;
+
+    case 7:
+        analogWrite(up_pin, 255);
+        analogWrite(down_pin, 255);
+        analogWrite(right_pin, 255);
+        analogWrite(left_pin, 0);
+        break;
+
+    case 8:
+        analogWrite(up_pin, 0);
+        analogWrite(left_pin, 0);
+        analogWrite(down_pin, 255);
+        analogWrite(right_pin, 255);
+        break;
+
+    default:
+        Serial.print("hat switch error: ");
+        Serial.println(pp->head());
+        break;
+    }
+    return true;
+}
+
+
+bool arrow_key()
 {
   int y = pp->y() / 2;
   if (y > threshold) {
@@ -249,45 +318,7 @@ void arrow_key()
     analogWrite(left_pin, 255);
     x = 0;
   }
-
-  // HATスイッチ
-  if (x == 0 && y == 0) {
-    switch (pp->head()) {
-    case 0:
-        break;
-    case 1:
-        analogWrite(up_pin, 0);
-        break;
-    case 2:
-        analogWrite(up_pin, 0);
-        analogWrite(right_pin, 0);
-        break;
-    case 3:
-        analogWrite(right_pin, 0);
-        break;
-    case 4:
-        analogWrite(down_pin, 0);
-        analogWrite(right_pin, 0);
-        break;
-    case 5:
-        analogWrite(down_pin, 0);
-        break;
-    case 6:
-        analogWrite(down_pin, 0);
-        analogWrite(left_pin, 0);
-        break;
-    case 7:
-        analogWrite(left_pin, 0);
-        break;
-    case 8:
-        analogWrite(up_pin, 0);
-        analogWrite(left_pin, 0);
-        break;
-
-    default:
-        break;
-    }
-  }
+  return true;
 }
 
 
@@ -376,6 +407,11 @@ void buttons()
       portOn(sfc_r_pin);
     }
 
+//  } else {
+//    // スロットル→Aボタン（for STARLUSTER）
+//    if (pp->m() < 16) {
+//      analogWrite(top_pin, pp->m()*2);
+//    }
   }
 }
 
@@ -392,7 +428,10 @@ void loop (void)
     shift();
   } else {
     cnt_shift = 0;
+    // HATスイッチの操作が操縦桿より優先（for Star Luster）
+    if (hat_switch() == false) {
     arrow_key();
+    }
     buttons();
   }
   delay(15);
