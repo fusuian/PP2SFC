@@ -42,7 +42,7 @@ const int right_pin = 9;
 
 const int sfc_a_pin = 2;
 const int sfc_b_pin = 4;
-const int a_pin = sfc_b_pin;
+const int fc_a_pin = sfc_b_pin;
 
 
 
@@ -52,8 +52,7 @@ const int sfc_y_pin = A2;
 const int sfc_r_pin = A3;
 const int sfc_l_pin = A4;
 const int sfc_x_pin = A5;
-const int b_pin = sfc_y_pin;
-
+const int fc_b_pin = sfc_y_pin;
 
 int fire_pin;
 int top_pin;
@@ -81,8 +80,8 @@ void set_super(bool state)
     top_down_pin = sfc_b_pin;
   } else {
     // ファミコンの場合 B/A/Select/Start
-    fire_pin = b_pin;
-    top_pin = a_pin;
+    fire_pin = fc_b_pin;
+    top_pin = fc_a_pin;
     top_up_pin = select_pin;
     top_down_pin = start_pin;
   }
