@@ -139,6 +139,7 @@ void setup (void)
   set_super(false);
   set_reverse(true);
   mode_rapid_fire = false;
+  pp->init();
 }
 
 void print_status()

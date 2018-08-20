@@ -78,7 +78,11 @@ class PrecisionPro
     SS = ss;
     PIN_CLEAR = pin_clear;
     PIN_TRIGGER = pin_trigger;
+  }
 
+
+  void init()
+  {
     pinMode(MOSI, INPUT_PULLUP);
     pinMode(SCK, INPUT_PULLUP);
     pinMode(PIN_TRIGGER, OUTPUT);
