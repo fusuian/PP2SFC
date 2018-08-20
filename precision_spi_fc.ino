@@ -19,6 +19,8 @@ bool mode_rapid_fire = false; // fireキー連射モード
 bool mode_reverse = true;     // 上下反転モード
 bool mode_super = false;      // スーパーファミコンモード(トップアップ/ダウンキーがXYボタンになり、スティックのひねりがLRボタンになる)
 
+// X/Y軸のしきい値
+const int threshold = 16;
 
 
 PrecisionPro * pp;
@@ -29,8 +31,6 @@ ISR (SPI_STC_vect)
   pp->add_buf(SPDR);
 }
 
-
-const int threshold = 16;
 
 // キー/ボタンに対応するデジタルピン
 
@@ -54,12 +54,15 @@ const int sfc_l_pin = A4;
 const int sfc_x_pin = A5;
 const int fc_b_pin = sfc_y_pin;
 
+// mode_superに応じて、スティック頭のボタンの番号を保持
 int fire_pin;
 int top_pin;
 int top_up_pin;
 int top_down_pin;
 
-int p_down, p_up;             // mode_reverseのために、アップダウンのピン番号を保持
+int p_down, p_up;             // mode_reverseに応じて、Y軸のピン番号を保持
+
+
 int rapid_counter = 1;        // 連射間隔を制御するカウンタ
 const int rapid_interval = 6; // 連射間隔
 
@@ -259,7 +262,7 @@ bool hat_switch()
         analogWrite(left_pin, 255);
         analogWrite(right_pin, 0);
         break;
-    
+
     case 4:
         analogWrite(up_pin, 255);
         analogWrite(left_pin, 255);
@@ -273,7 +276,7 @@ bool hat_switch()
         analogWrite(right_pin, 255);
         analogWrite(down_pin, 0);
         break;
-    
+
     case 6:
         analogWrite(up_pin, 255);
         analogWrite(right_pin, 255);
@@ -317,7 +320,6 @@ bool arrow_key()
     analogWrite(p_up, 256+y);
   } else {
     analogWrite(p_up, 255);
-    y = 0;
   }
 
   int x = pp->x() / 2;
@@ -330,7 +332,6 @@ bool arrow_key()
     analogWrite(left_pin, 256+x);
   } else {
     analogWrite(left_pin, 255);
-    x = 0;
   }
   return true;
 }
