@@ -15,9 +15,9 @@
 #define PIN_TRIGGER 8 // Precision Proのトリガーとつなぐデジタルピン
 #define PIN_CLEAR   7 // Precision Proとの通信開始（レジスタクリア）のデジタルピン
 
-bool mode_rapid_fire; // fireキー連射モード
-bool mode_reverse;    // 上下反転モード
-bool mode_super;      // スーパーファミコンモード(トップアップ/ダウンキーがXYボタンになり、スティックのひねりがLRボタンになる)
+bool mode_rapid_fire = false; // fireキー連射モード
+bool mode_reverse = true;     // 上下反転モード
+bool mode_super = false;      // スーパーファミコンモード(トップアップ/ダウンキーがXYボタンになり、スティックのひねりがLRボタンになる)
 
 
 
@@ -136,10 +136,9 @@ void setup (void)
   portOn(sfc_r_pin);
 
   pp = new PrecisionPro(MOSI, SCK, SS, PIN_TRIGGER, PIN_CLEAR);
-  set_super(false);
-  set_reverse(true);
-  mode_rapid_fire = false;
   pp->init();
+  set_super(mode_super);
+  set_reverse(mode_reverse);
 }
 
 void print_status()
