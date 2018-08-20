@@ -30,7 +30,7 @@ ISR (SPI_STC_vect)
 }
 
 
-const int threshold = 100;
+const int threshold = 16;
 
 // キー/ボタンに対応するデジタルピン
 
