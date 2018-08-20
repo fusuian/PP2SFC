@@ -4,16 +4,15 @@
 #include <SPI.h>
 #include "portmacro.h"
 
-// SPI pins
+// SPI pins (Arduino Nano)
 // SCK  D13 // -> Game port 2 // pull up
 // MISO D12 // NC
 // MOSI D11 // -> Game port 7 // pull up
 // SS   D10 // <- PIN_CLEAR
-
-// Trigger pin
 // PIN_TRIGGER -> Game port 3
 
-
+// sw_data_t from https://github.com/MaZderMind/SidewinderInterface
+//
 // data structure as sent from my sidewinder device, 48 bits total
 // this datatype is accessable via two ways: an integer-array and a struct
 // the former is used to used to manipulate the data at a bit-level

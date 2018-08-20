@@ -179,7 +179,7 @@ char pf, pt;
 void shift()
 {
   if (mode_super) {
-    // top_up/top_down → SELECT, START
+    // shift+top_up/top_down → SELECT, START
     if (pp->top_up()) {
       portOff(select_pin);
     } else {
@@ -193,21 +193,21 @@ void shift()
     }
   }
 
-  // ファイアボタンで連射のオン・オフを切り替え
+  // shift+ファイアボタンで連射のオン・オフを切り替え
   int f = pp->fire();
   if (f && pf == 0) {
     mode_rapid_fire = !mode_rapid_fire;
   }
   pf = f;
 
-  // トップボタンでスーファミモードを切り替え
+  // shift+トップボタンでスーファミモードを切り替え
   int t = pp->top();
   if (t && pt == 0) {
     set_super(!mode_super);
   }
   pt = t;
 
-  // HATスイッチの上下で操縦桿の上下を反転
+  // shift+HATスイッチの上下で操縦桿の上下を反転
   switch (pp->head()) {
   case 1:
     set_reverse(false);
@@ -430,7 +430,7 @@ void loop (void)
     cnt_shift = 0;
     // HATスイッチの操作が操縦桿より優先（for Star Luster）
     if (hat_switch() == false) {
-    arrow_key();
+      arrow_key();
     }
     buttons();
   }
