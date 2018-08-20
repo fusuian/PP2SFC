@@ -12,7 +12,7 @@
 #include "PrecisionPro.h"
 #include "portmacro.h"
 
-#define PIN_TRIGGER 2 // Precision Proのトリガーとつなぐデジタルピン
+#define PIN_TRIGGER 8 // Precision Proのトリガーとつなぐデジタルピン
 #define PIN_CLEAR   7 // Precision Proとの通信開始（レジスタクリア）のデジタルピン
 
 bool mode_rapid_fire; // fireキー連射モード
@@ -35,24 +35,24 @@ const int threshold = 100;
 // キー/ボタンに対応するデジタルピン
 
 // 上下左右はPWM対応のピンであること（疑似アナログジョイスティック）
-const int up_pin = 6;
+const int up_pin = 3;
 const int down_pin = 5;
+const int left_pin = 6;
 const int right_pin = 9;
-const int left_pin = 3;
 
-const int a_pin = 8;
-const int sfc_a_pin = 4;
-const int sfc_b_pin = a_pin;
-const int sfc_y_pin = b_pin;
+const int sfc_a_pin = 2;
+const int sfc_b_pin = 4;
+const int a_pin = sfc_b_pin;
 
 
 
-const int sfc_x_pin = A0;
-const int sfc_l_pin = A1;
-const int sfc_r_pin = A2;
-const int b_pin = A3;
-const int select_pin = A4;
-const int start_pin =  A5;
+const int start_pin = A0;
+const int select_pin =A1;
+const int sfc_y_pin = A2;
+const int sfc_r_pin = A3;
+const int sfc_l_pin = A4;
+const int sfc_x_pin = A5;
+const int b_pin = sfc_y_pin;
 
 
 int fire_pin;

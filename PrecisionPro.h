@@ -79,6 +79,8 @@ class PrecisionPro
     PIN_CLEAR = pin_clear;
     PIN_TRIGGER = pin_trigger;
 
+    pinMode(MOSI, INPUT_PULLUP);
+    pinMode(SCK, INPUT_PULLUP);
     pinMode(PIN_TRIGGER, OUTPUT);
     pinMode(PIN_CLEAR,   OUTPUT);
     digitalWrite(PIN_CLEAR, LOW);
