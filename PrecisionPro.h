@@ -8,8 +8,8 @@
 // SCK  D13 // -> Game port 2 // pull up
 // MISO D12 // NC
 // MOSI D11 // -> Game port 7 // pull up
-// SS   D10 // <- PIN_CLEAR
-// PIN_TRIGGER -> Game port 3
+// SS   D10 // <- clear_pin (Any GPIO pin)
+// trigger_pin (Any GPIO pin) -> Game port 3
 
 // sw_data_t from https://github.com/MaZderMind/SidewinderInterface
 //
@@ -59,39 +59,39 @@ typedef union
 class PrecisionPro
 {
   private:
-    int MOSI;
-    int SCK;
-    int SS;
-    int PIN_TRIGGER;
-    int PIN_CLEAR;
+    int mosi_pin;
+    int sck_pin;
+    int ss_pin;
+    int trigger_pin;
+    int clear_pin;
 
     volatile sw_data_t sw_data;
     volatile byte pos;
 
   public:
 
-  PrecisionPro(int mosi, int sck, int ss, int pin_trigger, int pin_clear)
+  PrecisionPro(int pin_trigger, int pin_clear, int mosi=MOSI, int sck=SCK, int ss=SS)
   {
-    MOSI = mosi;
-    SCK = sck;
-    SS = ss;
-    PIN_CLEAR = pin_clear;
-    PIN_TRIGGER = pin_trigger;
+    mosi_pin = mosi;
+    sck_pin = sck;
+    ss_pin = ss;
+    clear_pin = pin_clear;
+    trigger_pin = pin_trigger;
   }
 
 
   void init()
   {
-    pinMode(MOSI, INPUT_PULLUP);
-    pinMode(SCK, INPUT_PULLUP);
-    pinMode(PIN_TRIGGER, OUTPUT);
-    pinMode(PIN_CLEAR,   OUTPUT);
-    digitalWrite(PIN_CLEAR, LOW);
+    pinMode(mosi_pin, INPUT_PULLUP);
+    pinMode(sck_pin, INPUT_PULLUP);
+    pinMode(trigger_pin, OUTPUT);
+    pinMode(clear_pin,   OUTPUT);
+    digitalWrite(clear_pin, LOW);
 
     // SPI スレーブモード設定
-    pinMode(MOSI, INPUT);
-    pinMode(SCK, INPUT);
-    pinMode(SS,  INPUT);
+    pinMode(mosi_pin, INPUT);
+    pinMode(sck_pin, INPUT);
+    pinMode(ss_pin,  INPUT);
 
     SPCR |= _BV(SPE); // set slave mode
     SPI.setBitOrder(LSBFIRST);
@@ -101,19 +101,19 @@ class PrecisionPro
 
   void update()
   {
-    portOff(PIN_TRIGGER);
+    portOff(trigger_pin);
     delayMicroseconds(500);
-    // SSをHIGHにしてSPIのシフトレジスタをクリア
-    portOn(PIN_CLEAR);
+    // clear_pinを使ってSSをHIGHにして、SPIのシフトレジスタをクリア
+    portOn(clear_pin);
     delayMicroseconds(100);
-    portOff(PIN_CLEAR);
+    portOff(clear_pin);
 
     delayMicroseconds(400);
 
     pos = 0;
-    portOn(PIN_TRIGGER);
+    portOn(trigger_pin);
 
-    // 呼び出し側で1000us待ったあと、結果がPrecisionPro::dataに反映する
+    // trigger_pinをHIGHにしたあと、呼び出し側で1000us待つと結果がPrecisionPro::dataに反映する
   }
 
 

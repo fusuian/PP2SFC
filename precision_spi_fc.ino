@@ -135,7 +135,7 @@ void setup (void)
   portOn(sfc_l_pin);
   portOn(sfc_r_pin);
 
-  pp = new PrecisionPro(MOSI, SCK, SS, PIN_TRIGGER, PIN_CLEAR);
+  pp = new PrecisionPro(PIN_TRIGGER, PIN_CLEAR);
   pp->init();
   set_super(mode_super);
   set_reverse(mode_reverse);
