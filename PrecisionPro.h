@@ -162,7 +162,7 @@ class PrecisionPro
   }
 
 
-  int head() {
+  int hat_switch() {
     return sw_data.head;
   }
 
@@ -175,11 +175,11 @@ class PrecisionPro
     return sw_data.y - 512;
   }
 
-  int m() {
+  int throttle() {
     return sw_data.m;
   }
 
-  int r() {
+  int rudder() {
     return sw_data.r - 32;
   }
 

@@ -164,12 +164,27 @@ void print_status()
   Serial.print(y);
   Serial.print(")");
 
-  Serial.print("; m: ");
-  Serial.print(pp->m());
-  Serial.print("; r:");
-  Serial.print(pp->r());
-  Serial.print("; head:");
-  Serial.print(pp->head());
+  Serial.print("  top: ");
+  Serial.print(pp->fire());
+  Serial.print(pp->top());
+  Serial.print(pp->top_up());
+  Serial.print(pp->top_down());
+
+  Serial.print(": base: ");
+  Serial.print(pp->a());
+  Serial.print(pp->b());
+  Serial.print(pp->c());
+  Serial.print(pp->d());
+
+  Serial.print("; ");
+  Serial.print(pp->shift());
+
+  Serial.print("; thr: ");
+  Serial.print(pp->throttle());
+  Serial.print("; rud:");
+  Serial.print(pp->rudder());
+  Serial.print("; hat:");
+  Serial.print(pp->hat_switch());
   Serial.println();
 }
 
@@ -208,7 +223,7 @@ void shift()
   pt = t;
 
   // shift+HATスイッチの上下で操縦桿の上下を反転
-  switch (pp->head()) {
+  switch (pp->hat_switch()) {
   case 1:
     set_reverse(false);
     break;
@@ -222,7 +237,7 @@ void shift()
 
 bool hat_switch()
 {
-    switch (pp->head()) {
+    switch (pp->hat_switch()) {
     case 0:
         return false;
 
@@ -283,7 +298,7 @@ bool hat_switch()
 
     default:
         Serial.print("hat switch error: ");
-        Serial.println(pp->head());
+        Serial.println(pp->hat_switch());
         break;
     }
     return true;
@@ -379,7 +394,7 @@ void buttons()
   if (mode_super) {
   // スロットル→X,Bボタン（for STARFOX）
     if (non_top_down) {
-      if (pp->m() < 16) {
+      if (pp->throttle() < 16) {
         portOff(sfc_b_pin);
       } else {
         portOn(sfc_b_pin);
@@ -387,7 +402,7 @@ void buttons()
     }
 
     if (non_top_up) {
-      if (pp->m() > 104) {
+      if (pp->throttle() > 104) {
         portOff(sfc_x_pin);
       } else {
         portOn(sfc_x_pin);
@@ -395,13 +410,13 @@ void buttons()
     }
 
     // ツイスト→LR
-    if (pp->r() <= -32) {
+    if (pp->rudder() <= -32) {
       portOff(sfc_l_pin);
     } else {
       portOn(sfc_l_pin);
     }
 
-    if (pp->r() >= 20) {
+    if (pp->rudder() >= 20) {
       portOff(sfc_r_pin);
     } else {
       portOn(sfc_r_pin);
