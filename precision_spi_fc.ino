@@ -35,23 +35,24 @@ ISR (SPI_STC_vect)
 // キー/ボタンに対応するデジタルピン
 
 // 上下左右はPWM対応のピンであること（疑似アナログジョイスティック）
-const int up_pin = 3;
-const int down_pin = 5;
-const int left_pin = 6;
+const int up_pin    = 3;
+const int down_pin  = 5;
+const int left_pin  = 6;
 const int right_pin = 9;
 
 const int sfc_a_pin = 2;
 const int sfc_b_pin = 4;
+
+
+
+const int start_pin  = A0;
+const int select_pin = A1;
+const int sfc_y_pin  = A2;
+const int sfc_r_pin  = A3;
+const int sfc_l_pin  = A4;
+const int sfc_x_pin  = A5;
+
 const int fc_a_pin = sfc_b_pin;
-
-
-
-const int start_pin = A0;
-const int select_pin =A1;
-const int sfc_y_pin = A2;
-const int sfc_r_pin = A3;
-const int sfc_l_pin = A4;
-const int sfc_x_pin = A5;
 const int fc_b_pin = sfc_y_pin;
 
 // mode_superに応じて、スティック頭のボタンの番号を保持
@@ -60,8 +61,8 @@ int top_pin;
 int top_up_pin;
 int top_down_pin;
 
-int p_down, p_up;             // mode_reverseに応じて、Y軸のピン番号を保持
-
+// mode_reverseに応じて、Y軸のピン番号を保持
+int p_down, p_up;             
 
 int rapid_counter = 1;        // 連射間隔を制御するカウンタ
 const int rapid_interval = 6; // 連射間隔
@@ -93,7 +94,6 @@ void set_super(bool state)
 void set_reverse(bool state)
 {
   mode_reverse = state;
-  // 上下反転
   if (state) {
     p_up = down_pin;
     p_down = up_pin;
@@ -102,6 +102,8 @@ void set_reverse(bool state)
     p_down = down_pin;
   }
 }
+
+
 
 void setup (void)
 {
@@ -141,6 +143,8 @@ void setup (void)
   set_super(mode_super);
   set_reverse(mode_reverse);
 }
+
+
 
 void print_status()
 {
@@ -235,6 +239,8 @@ void do_shift()
     break;
   }
 }
+
+
 
 bool do_hat_switch()
 {
