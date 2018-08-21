@@ -192,7 +192,7 @@ void print_status()
 
 char pf, pt;
 
-void shift()
+void do_shift()
 {
   if (mode_super) {
     // shift+top_up/top_down → SELECT, START
@@ -236,7 +236,7 @@ void shift()
   }
 }
 
-bool hat_switch()
+bool do_hat_switch()
 {
     switch (pp->hat_switch()) {
     case 0:
@@ -306,7 +306,7 @@ bool hat_switch()
 }
 
 
-bool arrow_key()
+bool do_stick_xy()
 {
   int y = pp->y() / 2;
   if (y > threshold) {
@@ -336,7 +336,7 @@ bool arrow_key()
 }
 
 
-void buttons()
+void do_buttons()
 {
   // ファイアボタン
   if (mode_rapid_fire) {
@@ -438,13 +438,13 @@ void loop (void)
   print_status();
 
   if (pp->shift()) {
-    shift();
+    do_shift();
   } else {
     // HATスイッチの操作が操縦桿より優先（for Star Luster）
-    if (hat_switch() == false) {
-      arrow_key();
+    if (do_hat_switch() == false) {
+      do_stick_xy();
     }
-    buttons();
+    do_buttons();
   }
   delay(15);
 }
