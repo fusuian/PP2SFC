@@ -67,7 +67,6 @@ int rapid_counter = 1;        // 連射間隔を制御するカウンタ
 const int rapid_interval = 6; // 連射間隔
 
 unsigned int cnt = 0;
-unsigned int cnt_shift;
 
 // ファミコン/スーファミによって、操縦桿の頭のファイア/トップ/
 // トップアップ/トップダウンボタンの割り振りを変更する
@@ -439,10 +438,8 @@ void loop (void)
   print_status();
 
   if (pp->shift()) {
-    cnt_shift++;
     shift();
   } else {
-    cnt_shift = 0;
     // HATスイッチの操作が操縦桿より優先（for Star Luster）
     if (hat_switch() == false) {
       arrow_key();
