@@ -104,6 +104,8 @@ class PrecisionPro
     portOff(trigger_pin);
     delayMicroseconds(500);
     // clear_pinを使ってSSをHIGHにして、SPIのシフトレジスタをクリア
+    // （これをしないと入力信号がずれていく）
+    // （SSは入力ピンになっているので、SS自体を直接HIGH/LOWにはできない！）
     portOn(clear_pin);
     delayMicroseconds(100);
     portOff(clear_pin);
