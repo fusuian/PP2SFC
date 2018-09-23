@@ -9,4 +9,5 @@
 #define portOn(p)  ( PORT(p) |=  _BV(REG(p)) )
 #define portOff(p) ( PORT(p) &= ~_BV(REG(p)) )
 
-#define isPort(p)  ( (PORT(p) & _BV(p)) != 0 )
+#define isPin(p)  ( (PORT(p) & ~_BV(REG(p))) != 0 )
+
